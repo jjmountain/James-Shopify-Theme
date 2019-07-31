@@ -1,1 +1,12 @@
 // put your styles here
+.sold-out {
+  background-color: lightgrey;
+}
+
+.in-stock {
+  background-color: lime;
+}
+
+.in-stock:hover {
+  background-color: lightblue;
+}
