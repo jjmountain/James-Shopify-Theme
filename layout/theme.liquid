@@ -14,17 +14,22 @@
   {{ "https://unpkg.com/sweetalert/dist/sweetalert.min.js" | script_tag }}
   <script>
     function addItem(form_id) {
+      
+      // post request to add item to the cart
       $.ajax({
         type: "POST",
         url: '/cart/add.js',
         dataType: 'json',
         data: $('form[action="/cart/add"]').serialize(),
+        
+        // if successful, send a get request to get detailed information about product, including inventory quantity
         success: function(response){
-          console.log(response);
           $.ajax({
             type: "GET",
             url: `/admin/api/2019-07/variants/${response.variant_id}.json`,
             dataType: 'json',
+            
+            // if successful, calculate quantity of item remaining and state of cart
             success: function(productResponse){
               console.log('GET Successful response', productResponse);
               const cartItems = []
@@ -41,24 +46,43 @@
                   });
                   const itemQuantities = cartResponse.items.map(item => item.quantity);
                   const totalItems = itemQuantities.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+                  
+                  
+                  // call sweet alert to display modal notification upon success, passing in information about inventory and cart into notification
                   swal(
                     `${itemTitle} was added to your cart!`, 
                     `There are ${inventoryQuantity} remaining...\n\n Currently in your cart:\n\n${cartItems.join('\n')} \n\n ** Total Items: ${totalItems} **`, 
                     "success");
                 },
+
+                // if error at any stage, display error modal in sweet alert
                 error: function(cartError){
-                  swal('Oh no something went wrong..', 'There was an error', 'error');
+                  console.log(typeof cartError.responseJSON.description)
+                  swal({
+                    title: "Oh no something went wrong..",
+                    text: cartError.responseJSON.description,
+                    icon: "error"
+                  });
                 }
               });
             },
             error: function(productError){
-              console.log(productError)
-              swal('Oh no something went wrong..', 'There was an error', 'error')
+              console.log('product error', productError);
+              swal({
+                title: "Oh no something went wrong..",
+                text: productError.responseJSON.description,
+                icon: "error"
+              });
             }
           });
         },
         error: function(error){
-          swal('Oh no something went wrong..', 'There was an error', 'error')
+          console.log('add error', error);
+          swal({
+                title: "Oh no something went wrong..",
+                text: error.responseJSON.description,
+                icon: "error"
+              });
       }                           
       });
     };
