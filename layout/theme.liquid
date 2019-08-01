@@ -11,10 +11,40 @@
   {{ 'application.js' | asset_url | script_tag }}
   {{ '//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js' | script_tag }}
   {{ 'api.jquery.js' | shopify_asset_url | script_tag }}
+  {{ "https://unpkg.com/sweetalert/dist/sweetalert.min.js" | script_tag }}
   <script>
     function addItem(form_id) {
-      jQuery.post('/cart/add.js', $('form[action="/cart/add"]').serialize());
-    }
+      // console.log(form_id, $('form[action="/cart/add"]'))
+      // $.post('/cart/add.js', $('form[action="/cart/add"]').serialize());
+      $.ajax({
+        type: "POST",
+        url: '/cart/add.js',
+        dataType: 'json',
+        data: $('form[action="/cart/add"]').serialize(),
+        success: function(response){
+          console.log(response);
+          $.ajax({
+            type: "GET",
+            url: `/admin/api/2019-07/variants/${response.variant_id}.json`,
+            dataType: 'json',
+            success: function(productResponse){
+
+              console.log('GET Successful response', productResponse);
+              const inventoryQuantity = productResponse.variant.inventory_quantity - response.quantity;
+              const itemTitle = response.title;
+              console.log(itemTitle)
+              swal(`${itemTitle} was added to your cart!`, `${inventoryQuantity} remaining`, "success");
+            },
+            error: function(productError){
+              console.log('GET error', productError)
+            }
+          });
+        },
+        error: function(error){
+      		console.log('Post had an error', error);
+      }                           
+      });
+    };
   </script>
 </head>
 <body>
