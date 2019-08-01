@@ -14,8 +14,6 @@
   {{ "https://unpkg.com/sweetalert/dist/sweetalert.min.js" | script_tag }}
   <script>
     function addItem(form_id) {
-      // console.log(form_id, $('form[action="/cart/add"]'))
-      // $.post('/cart/add.js', $('form[action="/cart/add"]').serialize());
       $.ajax({
         type: "POST",
         url: '/cart/add.js',
@@ -28,20 +26,38 @@
             url: `/admin/api/2019-07/variants/${response.variant_id}.json`,
             dataType: 'json',
             success: function(productResponse){
-
               console.log('GET Successful response', productResponse);
+              const cartItems = []
               const inventoryQuantity = productResponse.variant.inventory_quantity - response.quantity;
               const itemTitle = response.title;
-              console.log(itemTitle)
-              swal(`${itemTitle} was added to your cart!`, `${inventoryQuantity} remaining`, "success");
+              $.ajax({
+                type: "GET",
+                url: '/cart.js',
+                dataType: 'json',
+                success: function(cartResponse){
+                  console.log("Successful Cart Response", cartResponse);
+                  const cartItems = cartResponse.items.map(item => {
+                    return `- ${item.title} x ${item.quantity}`
+                  });
+                  const itemQuantities = cartResponse.items.map(item => item.quantity);
+                  const totalItems = itemQuantities.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+                  swal(
+                    `${itemTitle} was added to your cart!`, 
+                    `There are ${inventoryQuantity} remaining...\n\n Currently in your cart:\n\n${cartItems.join('\n')} \n\n ** Total Items: ${totalItems} **`, 
+                    "success");
+                },
+                error: function(cartError){
+                  console.log("GET Cart error", cartError);
+                }
+              });
             },
             error: function(productError){
-              console.log('GET error', productError)
+              console.log('GET Product error', productError)
             }
           });
         },
         error: function(error){
-      		console.log('Post had an error', error);
+      		console.log('POST to cart error', error);
       }                           
       });
     };
