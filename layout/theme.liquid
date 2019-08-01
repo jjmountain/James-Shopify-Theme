@@ -47,17 +47,18 @@
                     "success");
                 },
                 error: function(cartError){
-                  console.log("GET Cart error", cartError);
+                  swal('Oh no something went wrong..', 'There was an error', 'error');
                 }
               });
             },
             error: function(productError){
-              console.log('GET Product error', productError)
+              console.log(productError)
+              swal('Oh no something went wrong..', 'There was an error', 'error')
             }
           });
         },
         error: function(error){
-      		console.log('POST to cart error', error);
+          swal('Oh no something went wrong..', 'There was an error', 'error')
       }                           
       });
     };
